@@ -139,6 +139,8 @@ public class LoadView {
 
         this.adventureGameView.updateItems();
         this.adventureGameView.updateScene(this.adventureGameView.model.player.getCurrentRoom().getRoomDescription());
+        this.adventureGameView.model.gameTimer.startTimer();
+        this.adventureGameView.startTimer();
     }
 
     /**
