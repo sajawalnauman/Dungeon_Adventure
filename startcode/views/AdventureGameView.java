@@ -3,8 +3,11 @@ package views;
 import AdventureModel.AdventureGame;
 import AdventureModel.AdventureObject;
 import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -26,6 +29,7 @@ import javafx.event.EventHandler; //you will need this too!
 import javafx.scene.AccessibleRole;
 
 import java.io.File;
+
 
 /**
  * Class AdventureGameView.
@@ -54,6 +58,9 @@ public class AdventureGameView {
     private MediaPlayer mediaPlayer; //to play audio
     private boolean mediaPlaying; //to know if the audio is playing
 
+    private Timeline timeline;
+    Label remainTimeLabel = new Label();
+
     /**
      * Adventure Game View Constructor
      * __________________________
@@ -63,6 +70,12 @@ public class AdventureGameView {
         this.model = model;
         this.stage = stage;
         intiUI();
+        startTimer();
+        this.stage.setOnCloseRequest(event -> {
+            stopTimer();
+            this.model.gameTimer.stopTimer();
+            System.exit(0);
+        });
     }
 
     /**
@@ -177,6 +190,56 @@ public class AdventureGameView {
         this.stage.setResizable(false);
         this.stage.show();
 
+    }
+
+
+    /**
+     * updateTimerLabel()
+     * __________________________
+     * update TimerLabel as remain time is updating
+     * if remaining Time is less than 0
+     * stop the timer and exit the game.
+     * */
+    public void updateTimerLabel() {
+        gridPane.getChildren().remove(remainTimeLabel);
+        int remainingTime = this.model.gameTimer.getRemainingTime();
+        System.out.println(remainingTime);
+        remainTimeLabel.setText("Time Remaining: " + Integer.toString(remainingTime) + " seconds");
+        remainTimeLabel.setStyle("-fx-text-fill: white;");
+        remainTimeLabel.setFont(new Font("Arial", 20));
+        VBox timeBox = new VBox(remainTimeLabel);
+        timeBox.setAlignment(Pos.BOTTOM_CENTER);
+        gridPane.add(timeBox, 1, 1, 1, 1);
+        //System.out.println(this.model.gameTimer.getRemainingTime());
+        if (remainingTime <= 0) {
+            stopTimer();
+            Platform.exit();
+        }
+    }
+
+    /**
+     * startTimer()
+     * __________________________
+     * timeline
+     * */
+    public void startTimer() {
+        if (timeline != null) {
+            timeline.stop();
+        }
+        //this.model.gameTimer.startTimer();
+        timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                updateTimerLabel();
+            }
+        }));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+    public void stopTimer() {
+        if (timeline != null) {
+            timeline.stop();
+        }
     }
 
 
