@@ -69,7 +69,6 @@ public class GameTimer implements Serializable {
     }
     private void writeObject(ObjectOutputStream oos) throws IOException {
         oos.defaultWriteObject();
-        //oos.writeBoolean(isRunning);
         oos.writeInt(currentTime);
         oos.writeInt(remainingTime);
     }
