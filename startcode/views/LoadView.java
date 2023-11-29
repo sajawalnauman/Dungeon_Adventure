@@ -15,6 +15,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.util.ArrayList;
 
 
 /**
@@ -72,7 +73,21 @@ public class LoadView {
             }
         });
 
-        VBox selectGameBox = new VBox(10, selectGameLabel, GameList, selectGameButton);
+        Label historyLabel = new Label(String.format(""));
+        historyLabel.setId("Game History");
+
+        GameList.setOnMouseClicked(event -> {
+            try {
+                viewHistory(GameList, historyLabel);
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        VBox selectGameBox = new VBox(16, selectGameLabel, GameList, historyLabel, selectGameButton);
+
+        historyLabel.setStyle("-fx-text-fill: #e8e6e3");
+        historyLabel.setFont(new Font(16));
 
         // Default styles which can be modified
         GameList.setPrefHeight(100);
@@ -139,6 +154,10 @@ public class LoadView {
 
         this.adventureGameView.updateItems();
         this.adventureGameView.updateScene(this.adventureGameView.model.player.getCurrentRoom().getRoomDescription());
+        this.adventureGameView.model.gameTimer.startTimer();
+        this.adventureGameView.startTimer();
+
+
     }
 
     /**
@@ -161,6 +180,29 @@ public class LoadView {
                 file.close();
             }
         }
+    }
+
+    /**
+     * Select the Game
+     * Set the texts of the historyLabel as the room name and inventory of the selected game
+     * @param GameList the ListView to populate
+     * @param historyLabel label that stores history information
+     */
+    public void viewHistory(ListView<String> GameList, Label historyLabel) throws IOException, ClassNotFoundException {
+        try {
+            String name = GameList.getSelectionModel().getSelectedItem();
+            AdventureGame game = this.loadGame("Games/Saved/" + name);
+            String room_name = game.getPlayer().getCurrentRoom().getRoomName();
+            ArrayList<String> objStr = new ArrayList<>(game.getPlayer().getInventory());
+            String inventory = String.join(", ", objStr);
+
+            String historyText = "Current Room: " + room_name + "\nInventory: " + inventory;
+            historyLabel.setText(historyText);
+
+        } catch (FileNotFoundException | ClassNotFoundException e) {
+            historyLabel.setText("");
+        }
+
     }
 
 }

@@ -13,6 +13,7 @@ public class AdventureGame implements Serializable {
     private HashMap<String,String> synonyms = new HashMap<>(); //A HashMap to store synonyms of commands.
     private final String[] actionVerbs = {"QUIT","INVENTORY","TAKE","DROP"}; //List of action verbs (other than motions) that exist in all games. Motion vary depending on the room and game.
     public Player player; //The Player of the game.
+    public GameTimer gameTimer;
 
     /**
      * Adventure Game Constructor
@@ -61,6 +62,10 @@ public class AdventureGame implements Serializable {
 
         // set up the player's current location
         this.player = new Player(this.rooms.get(1));
+
+        // set up the timer
+        this.gameTimer = new GameTimer();
+        this.gameTimer.startTimer();
     }
 
     /**
