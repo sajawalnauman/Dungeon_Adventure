@@ -203,14 +203,12 @@ public class AdventureGameView {
     public void updateTimerLabel() {
         gridPane.getChildren().remove(remainTimeLabel);
         int remainingTime = this.model.gameTimer.getRemainingTime();
-        System.out.println(remainingTime);
         remainTimeLabel.setText("Time Remaining: " + Integer.toString(remainingTime) + " seconds");
         remainTimeLabel.setStyle("-fx-text-fill: white;");
         remainTimeLabel.setFont(new Font("Arial", 20));
         VBox timeBox = new VBox(remainTimeLabel);
         timeBox.setAlignment(Pos.BOTTOM_CENTER);
         gridPane.add(timeBox, 1, 1, 1, 1);
-        //System.out.println(this.model.gameTimer.getRemainingTime());
         if (remainingTime <= 0) {
             stopTimer();
             Platform.exit();
@@ -226,7 +224,6 @@ public class AdventureGameView {
         if (timeline != null) {
             timeline.stop();
         }
-        //this.model.gameTimer.startTimer();
         timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
