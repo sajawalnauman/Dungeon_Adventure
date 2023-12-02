@@ -14,11 +14,6 @@ public class Player implements Serializable {
     private Room currentRoom;
 
     /**
-     * The name of the Player.
-     */
-    private String name;
-
-    /**
      * The list of items that the player is carrying at the moment.
      */
     public ArrayList<AdventureObject> inventory;
@@ -121,20 +116,5 @@ public class Player implements Serializable {
             objects.add(this.inventory.get(i).getName());
         }
         return objects;
-    }
-
-    /**
-     * Setter method for the name of the Player.
-     */
-    public void setPlayerName(String name) { this.name = name; }
-
-
-    /**
-     * Getter method for the name of the Player.
-     *
-     * @return name of the player.
-     */
-    public String getPlayerName() {
-        return this.name;
     }
 }
