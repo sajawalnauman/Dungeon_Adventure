@@ -1,7 +1,6 @@
 package views;
 
-import AdventureModel.AdventureGame;
-import AdventureModel.AdventureObject;
+import AdventureModel.*;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
@@ -29,6 +28,7 @@ import javafx.event.EventHandler; //you will need this too!
 import javafx.scene.AccessibleRole;
 
 import java.io.File;
+import java.util.*;
 
 
 /**
@@ -45,8 +45,9 @@ public class AdventureGameView {
 
     AdventureGame model; //model of the game
     Stage stage; //stage on which all is rendered
-    Button saveButton, loadButton, helpButton; //buttons
+    Button saveButton, loadButton, helpButton, leaderboardButton; //buttons
     Boolean helpToggle = false; //is help on display?
+    Boolean leaderboardToggle = false; //is leaderboard on display?
 
     GridPane gridPane = new GridPane(); //to hold images and buttons
     Label roomDescLabel = new Label(); //to hold room description and/or instructions
@@ -136,8 +137,14 @@ public class AdventureGameView {
         makeButtonAccessible(helpButton, "Help Button", "This button gives game instructions.", "This button gives instructions on the game controls. Click it to learn how to play.");
         addInstructionEvent();
 
+        leaderboardButton = new Button("Leaderboard");
+        leaderboardButton.setId("Leaderboard");
+        customizeButton(leaderboardButton, 200, 50);
+        makeButtonAccessible(leaderboardButton, "Leaderboard Button", "This button shows the leaderboard.", "This button shows the leaderboard. Click it to see the top 3 times.");
+        addLeaderboardEvent();
+
         HBox topButtons = new HBox();
-        topButtons.getChildren().addAll(saveButton, helpButton, loadButton);
+        topButtons.getChildren().addAll(saveButton, helpButton, leaderboardButton, loadButton);
         topButtons.setSpacing(10);
         topButtons.setAlignment(Pos.CENTER);
 
@@ -189,7 +196,6 @@ public class AdventureGameView {
         this.stage.setScene(scene);
         this.stage.setResizable(false);
         this.stage.show();
-
     }
 
 
@@ -304,6 +310,7 @@ public class AdventureGameView {
         });
     }
 
+
     /**
      * submitEvent
      * __________________________
@@ -338,6 +345,32 @@ public class AdventureGameView {
         } else if (output.equals("GAME OVER")) {
             updateScene("");
             updateItems();
+
+            gridPane.getChildren().remove(inputTextField);
+
+            inputTextField = new TextField();
+            inputTextField.setFont(new Font("Arial", 16));
+            inputTextField.setFocusTraversable(true);
+
+            inputTextField.setAccessibleRole(AccessibleRole.TEXT_AREA);
+            inputTextField.setAccessibleRoleDescription("Text Entry Box");
+            inputTextField.setAccessibleText("Enter your name in this box.");
+            inputTextField.setAccessibleHelp("This is the area in which you can enter your name. Enter your name and hit return to continue.");
+            saveAttempt();
+
+            Label commandLabel = new Label("Please enter your name:");
+            commandLabel.setStyle("-fx-text-fill: white;");
+            commandLabel.setFont(new Font("Arial", 16));
+
+            // adding the text area and submit button to a VBox
+            VBox textEntry = new VBox();
+            textEntry.setStyle("-fx-background-color: #000000;");
+            textEntry.setPadding(new Insets(20, 20, 20, 20));
+            textEntry.getChildren().addAll(commandLabel, inputTextField);
+            textEntry.setSpacing(10);
+            textEntry.setAlignment(Pos.CENTER);
+            gridPane.add( textEntry, 0, 2, 3, 1 );
+
             PauseTransition pause = new PauseTransition(Duration.seconds(10));
             pause.setOnFinished(event -> {
                 Platform.exit();
@@ -355,6 +388,30 @@ public class AdventureGameView {
             });
             pause.play();
         }
+    }
+
+    /**
+     * saveAttempt
+     * __________________________
+     *
+     * Upon pressing Enter, save the current player's name and time
+     * into the leaderboard and update the leaderboard file to represent the change.
+     */
+    private void saveAttempt() {
+
+        this.inputTextField.setOnKeyPressed(e -> {
+
+            KeyCode keyPress = e.getCode();
+            if (keyPress.equals(KeyCode.ENTER)) {
+                this.model.getLeaderboard().addTime(this.inputTextField.getText(), this.model.getGameTimer().getEndingTime());
+                this.model.saveLeaderboard();
+                this.inputTextField.setText("");
+            }
+            else if (keyPress.equals(KeyCode.TAB)) {
+                this.gridPane.requestFocus();
+                this.inputTextField.setText("");
+            }
+        });
     }
 
 
@@ -566,6 +623,78 @@ public class AdventureGameView {
         helpToggle = !helpToggle;
     }
 
+    /* showLeaderboard
+     * Show the game's leaderboard.
+     */
+    public void showLeaderboard() {
+
+        if (!leaderboardToggle) {
+
+            roomImageView.setImage(null);
+
+            StringBuilder source = new StringBuilder();
+
+            source.append("LEADERBOARD\n\n\n\n");
+
+            HashMap sortedMap = new HashMap<String, Integer>();
+            sortedMap = sortByValue(Leaderboard.bestTimes);
+
+            for (Object key : sortedMap.keySet()) {
+                source.append(key).append(" : ").append(Leaderboard.bestTimes.get(key)).append("s\n");
+            }
+
+
+            String text = source.toString();
+            Label label = new Label();
+            label.setText(text);
+            formatText(text); //format the text to display
+            label.setPrefWidth(1000);
+            label.setPrefHeight(1000);
+            label.setStyle("-fx-text-fill:WHITE; -fx-font-size: 25;");
+            label.setTextOverrun(OverrunStyle.CLIP);
+            label.setWrapText(true);
+            label.setAlignment(Pos.CENTER);
+
+            VBox roomPane = new VBox(label);
+            roomPane.setPadding(new Insets(10));
+            roomPane.setAlignment(Pos.TOP_CENTER);
+            roomPane.setStyle("-fx-background-color: #000000;");
+
+            gridPane.add(roomPane, 1, 1);
+        }
+
+        else {
+            String roomDesc = this.model.getPlayer().getCurrentRoom().getRoomDescription();
+            String objectString = this.model.getPlayer().getCurrentRoom().getObjectString();
+
+            updateScene(roomDesc + "\n\nObjects in this room:\n" + objectString);
+        }
+        leaderboardToggle = !leaderboardToggle;
+    }
+
+    /* sortByValue
+     * Helper method to sort and return the Hashmap based on the time(integer value).
+     */
+    public static HashMap<String, Integer> sortByValue(HashMap<String, Integer> hm) {
+
+        List<HashMap.Entry<String, Integer> > list =
+                new LinkedList<Map.Entry<String, Integer> >(hm.entrySet());
+
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer> >() {
+            public int compare(Map.Entry<String, Integer> o1,
+                               Map.Entry<String, Integer> o2)
+            {
+                return (o1.getValue()).compareTo(o2.getValue());
+            }
+        });
+
+        HashMap<String, Integer> temp = new LinkedHashMap<String, Integer>();
+        for (Map.Entry<String, Integer> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
+    }
+
     /**
      * This method handles the event related to the
      * help button.
@@ -574,6 +703,17 @@ public class AdventureGameView {
         helpButton.setOnAction(e -> {
             stopArticulation(); //if speaking, stop
             showInstructions();
+        });
+    }
+
+    /**
+     * This method handles the event related to the
+     * leaderbaord button.
+     */
+    public void addLeaderboardEvent() {
+        leaderboardButton.setOnAction(e -> {
+            stopArticulation(); //if speaking, stop
+            showLeaderboard();
         });
     }
 
