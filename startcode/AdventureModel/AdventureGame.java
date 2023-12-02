@@ -14,6 +14,7 @@ public class AdventureGame implements Serializable {
     private final String[] actionVerbs = {"QUIT","INVENTORY","TAKE","DROP"}; //List of action verbs (other than motions) that exist in all games. Motion vary depending on the room and game.
     public Player player; //The Player of the game.
     public GameTimer gameTimer;
+    public Leaderboard leaderboard;
 
     /**
      * Adventure Game Constructor
@@ -25,6 +26,7 @@ public class AdventureGame implements Serializable {
     public AdventureGame(String name){
         this.synonyms = new HashMap<>();
         this.rooms = new HashMap<>();
+        this.leaderboard = new Leaderboard();
         this.directoryName = "Games/" + name; //all games files are in the Games directory!
         try {
             setUpGame();
@@ -240,5 +242,50 @@ public class AdventureGame implements Serializable {
         this.helpText = help;
     }
 
+    /**
+     * getGameTimer
+     * __________________________
+     * Getter method for GameTimer
+     */
+    public GameTimer getGameTimer() {
+        return this.gameTimer;
+    }
 
+    /**
+     * getLeaderboard
+     * __________________________
+     * Getter method for Leaderboard
+     */
+    public Leaderboard getLeaderboard() {
+        return this.leaderboard;
+    }
+
+    /**
+     * saveLeaderboard
+     * __________________________
+     * Save the Leaderboard into the leaderboard.txt file.
+     */
+    public void saveLeaderboard() {
+        String leaderboardFileName = this.directoryName + "/leaderboard.txt";
+
+        File oldLeader = new File(leaderboardFileName);
+        oldLeader.delete();
+
+        File newLeader = new File(leaderboardFileName);
+        StringBuilder source = new StringBuilder();
+
+        for (String key : Leaderboard.bestTimes.keySet()) {
+            source.append(key).append(",").append(Leaderboard.bestTimes.get(key)).append("\n");
+        }
+
+        System.out.println(source);
+
+        try {
+            FileWriter writer = new FileWriter(newLeader, false);
+            writer.write(source.toString());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

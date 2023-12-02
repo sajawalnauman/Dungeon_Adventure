@@ -31,6 +31,7 @@ public class AdventureLoader {
         parseRooms();
         parseObjects();
         parseSynonyms();
+        parseLeaderboard();
         this.game.setHelpText(parseOtherFile("help"));
     }
 
@@ -127,6 +128,23 @@ public class AdventureLoader {
         }
 
     }
+
+    /**
+     * Parse Leaderboard File
+     */
+    public void parseLeaderboard() throws IOException {
+        String leaderboardFileName = this.adventureName + "/leaderboard.txt";
+
+        BufferedReader buff = new BufferedReader(new FileReader(leaderboardFileName));
+        String line = buff.readLine();
+
+        while (line != null) { // while not EOF
+            String[] leader = line.split(",");
+            this.game.getLeaderboard().addTime(leader[0], Integer.valueOf(leader[1]));
+            line = buff.readLine();
+        }
+    }
+
 
     /**
      * Parse Files other than Rooms, Objects and Synonyms

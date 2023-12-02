@@ -117,6 +117,4 @@ public class Player implements Serializable {
         }
         return objects;
     }
-
-
 }
