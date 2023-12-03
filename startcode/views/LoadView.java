@@ -11,11 +11,14 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -26,18 +29,20 @@ import java.util.ArrayList;
 public class LoadView {
 
     private AdventureGameView adventureGameView;
-    private Label selectGameLabel;
-    private Button selectGameButton;
-    private Button closeWindowButton;
+    private static Label selectGameLabel = new Label(String.format(""));
+    private static Button selectGameButton = new Button("Change Game");
+    private static Button closeWindowButton = new Button("Close Window");
+    private static Label historyLabel = new Label(String.format("")); //to hold history information
+
+    private static int currentFontSize = 16; //to keep font size information
+    private static String currentFontStyle; //to keep font style information
 
     private ListView<String> GameList;
-    private String filename = null;
 
     public LoadView(AdventureGameView adventureGameView){
 
         //note that the buttons in this view are not accessible!!
         this.adventureGameView = adventureGameView;
-        selectGameLabel = new Label(String.format(""));
 
         GameList = new ListView<>(); //to hold all the file names
 
@@ -45,22 +50,21 @@ public class LoadView {
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initOwner(adventureGameView.stage);
 
-        VBox dialogVbox = new VBox(20);
-        dialogVbox.setPadding(new Insets(20, 20, 20, 20));
-        dialogVbox.setStyle("-fx-background-color: #121212;");
         selectGameLabel.setId("CurrentGame"); // DO NOT MODIFY ID
+        historyLabel.setId("Game History");
         GameList.setId("GameList");  // DO NOT MODIFY ID
         GameList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         getFiles(GameList); //get files for file selector
-        selectGameButton = new Button("Change Game");
+        // selectGameButton = new Button("Change Game");
         selectGameButton.setId("ChangeGame"); // DO NOT MODIFY ID
         AdventureGameView.makeButtonAccessible(selectGameButton, "select game", "This is the button to select a game", "Use this button to indicate a game file you would like to load.");
 
-        closeWindowButton = new Button("Close Window");
+        // closeWindowButton = new Button("Close Window");
         closeWindowButton.setId("closeWindowButton"); // DO NOT MODIFY ID
         closeWindowButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
         closeWindowButton.setPrefSize(200, 50);
-        closeWindowButton.setFont(new Font(16));
+        closeWindowButton.setFont(new Font(currentFontSize));
+        setFontStyleButton(currentFontStyle, closeWindowButton);
         closeWindowButton.setOnAction(e -> dialog.close());
         AdventureGameView.makeButtonAccessible(closeWindowButton, "close window", "This is a button to close the load game window", "Use this button to close the load game window.");
 
@@ -73,9 +77,6 @@ public class LoadView {
             }
         });
 
-        Label historyLabel = new Label(String.format(""));
-        historyLabel.setId("Game History");
-
         GameList.setOnMouseClicked(event -> {
             try {
                 viewHistory(GameList, historyLabel);
@@ -84,23 +85,140 @@ public class LoadView {
             }
         });
 
-        VBox selectGameBox = new VBox(16, selectGameLabel, GameList, historyLabel, selectGameButton);
+        VBox dialogVbox = new VBox(20);
+        dialogVbox.setPadding(new Insets(20, 20, 20, 20));
+        dialogVbox.setStyle("-fx-background-color: #121212;");
 
-        historyLabel.setStyle("-fx-text-fill: #e8e6e3");
-        historyLabel.setFont(new Font(16));
+        VBox selectGameBox = new VBox();
+        selectGameBox.getChildren().addAll(selectGameLabel, GameList, historyLabel, selectGameButton);
+        selectGameBox.setSpacing(10);
 
         // Default styles which can be modified
         GameList.setPrefHeight(100);
         selectGameLabel.setStyle("-fx-text-fill: #e8e6e3");
-        selectGameLabel.setFont(new Font(16));
+        selectGameLabel.setFont(new Font(currentFontSize));
+        setFontStyleLabel(currentFontStyle, selectGameLabel);
+        historyLabel.setStyle("-fx-text-fill: #e8e6e3");
+        historyLabel.setFont(new Font(currentFontSize));
+        setFontStyleLabel(currentFontStyle, historyLabel);
         selectGameButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
         selectGameButton.setPrefSize(200, 50);
-        selectGameButton.setFont(new Font(16));
+        selectGameButton.setFont(new Font(currentFontSize));
+        setFontStyleButton(currentFontStyle, selectGameButton);
         selectGameBox.setAlignment(Pos.CENTER);
         dialogVbox.getChildren().add(selectGameBox);
         Scene dialogScene = new Scene(dialogVbox, 400, 400);
         dialog.setScene(dialogScene);
         dialog.show();
+    }
+
+    /**
+     * Retrieves a list containing all the Label objects associated with the current class.
+     * The labels include room description, object description, inventory details, and command information.
+     *
+     * @return A List of Label objects representing various informational elements in the class.
+     */
+    private static List<Label> getAllLabels() {
+        List<Label> labels = new ArrayList<>();
+        labels.add(selectGameLabel);
+        labels.add(historyLabel);
+        return labels;
+    }
+
+    /**
+     * Retrieves a list containing all the Button objects associated with the current class.
+     * The buttons include functionality for saving, loading, accessing help, and adjusting settings.
+     *
+     * @return A List of Button objects representing various actions in the class.
+     */
+    private static List<Button> getAllButtons() {
+        List<Button> buttons = new ArrayList<>();
+        buttons.add(selectGameButton);
+        buttons.add(closeWindowButton);
+        return buttons;
+    }
+
+    /**
+     * Updates the font size of all labels and buttons in the current class.
+     * The font size can be set to "Big" (size 24) or the default size "Normal" (size 16).
+     *
+     * @param newSize The desired font size, either "Big" or "Normal".
+     */
+    public static void updateFontSize(String newSize) {
+        if (Objects.equals(newSize, "Big")) {
+            for (Label label : getAllLabels()) {
+                label.setFont(new Font(24));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(new Font(24));
+            }
+            currentFontSize = 24;
+        } else {
+            for (Label label : getAllLabels()) {
+                label.setFont(new Font(16));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(new Font(16));
+            }
+            currentFontSize = 16;
+        }
+
+    }
+
+    /**
+     * Updates the font style of all labels and buttons in the current class.
+     * The font style can be set to "Bold" or the default style "Normal".
+     *
+     * @param newStyle The desired font style, either "Bold" or "Normal".
+     */
+    public static void updateFontStyle(String newStyle) {
+        if (Objects.equals(newStyle, "Bold")) {
+            for (Label label : getAllLabels()) {
+                label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(Font.font(button.getFont().getFamily(),FontWeight.BOLD, button.getFont().getSize()));
+            }
+            currentFontStyle = "Bold";
+        } else {
+            for (Label label : getAllLabels()) {
+                label.setFont(Font.font(label.getFont().getFamily(),FontWeight.NORMAL, label.getFont().getSize()));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(Font.font(button.getFont().getFamily(),FontWeight.NORMAL, button.getFont().getSize()));
+            }
+            currentFontStyle = "Regular";
+        }
+    }
+
+    /**
+     * Sets the font style for a JavaFX Label.
+     *
+     * @param style  The desired font style, either "Bold" or "Normal".
+     * @param label  The JavaFX Label for which the font style needs to be set.
+     */
+    public static void setFontStyleLabel(String style, Label label) {
+        if (Objects.equals(style, "Bold")) {
+            label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
+        }
+        else {
+            label.setFont(Font.font(label.getFont().getFamily(), FontWeight.NORMAL, label.getFont().getSize()));
+        }
+    }
+
+    /**
+     * Sets the font style for a JavaFX Button.
+     *
+     * @param style   The desired font style, either "Bold" or "Normal".
+     * @param button  The JavaFX Button for which the font style needs to be set.
+     */
+    public static void setFontStyleButton(String style, Button button) {
+        if (Objects.equals(style, "Bold")) {
+            button.setFont(Font.font(button.getFont().getFamily(), FontWeight.BOLD, button.getFont().getSize()));
+        }
+        else {
+            button.setFont(Font.font(button.getFont().getFamily(), FontWeight.NORMAL, button.getFont().getSize()));
+        }
     }
 
     /**

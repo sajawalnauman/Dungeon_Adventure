@@ -8,6 +8,7 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
+import javafx.scene.Node;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -20,6 +21,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -44,23 +47,33 @@ import java.util.*;
 public class AdventureGameView {
 
     AdventureGame model; //model of the game
-    Stage stage; //stage on which all is rendered
-    Button saveButton, loadButton, helpButton, leaderboardButton; //buttons
+    public Stage stage; //stage on which all is rendered
+    static Button saveButton, loadButton, helpButton, leaderboardButton, settingButton; //buttons
     Boolean helpToggle = false; //is help on display?
     Boolean leaderboardToggle = false; //is leaderboard on display?
 
     GridPane gridPane = new GridPane(); //to hold images and buttons
-    Label roomDescLabel = new Label(); //to hold room description and/or instructions
+    static Label roomDescLabel = new Label(); //to hold room description and/or instructions
+
+    static Label objLabel, invLabel; //to hold object and inventory description and/or instructions
+    static Label commandLabel; //to hold command description and/or instructions
+    static Label commandLabel_2 = new Label(); //to hold command description and/or instructions
+    static Label leaderboardLabel = new Label(); //to hold leaderboard
+    static Label instructionLabel = new Label(); //to hold instruction
+
     VBox objectsInRoom = new VBox(); //to hold room items
     VBox objectsInInventory = new VBox(); //to hold inventory items
     ImageView roomImageView; //to hold room image
     TextField inputTextField; //for user input
 
+    private static int currentFontSize = 16; //to keep font size information
+    private static String currentFontStyle; //to keep font style information
+
     private MediaPlayer mediaPlayer; //to play audio
     private boolean mediaPlaying; //to know if the audio is playing
 
     private Timeline timeline;
-    Label remainTimeLabel = new Label();
+    static Label remainTimeLabel = new Label(); //to hold the remaining time
 
     /**
      * Adventure Game View Constructor
@@ -102,21 +115,31 @@ public class AdventureGameView {
         )));
 
         //Three columns, three rows for the GridPane
-        ColumnConstraints column1 = new ColumnConstraints(150);
-        ColumnConstraints column2 = new ColumnConstraints(650);
-        ColumnConstraints column3 = new ColumnConstraints(150);
+        ColumnConstraints column1 = new ColumnConstraints(140);
+        ColumnConstraints column2 = new ColumnConstraints(800);
+        ColumnConstraints column3 = new ColumnConstraints(140);
         column3.setHgrow( Priority.SOMETIMES ); //let some columns grow to take any extra space
         column1.setHgrow( Priority.SOMETIMES );
 
         // Row constraints
         RowConstraints row1 = new RowConstraints();
-        RowConstraints row2 = new RowConstraints( 550 );
-        RowConstraints row3 = new RowConstraints();
+        RowConstraints row2 = new RowConstraints( 500 );
+        RowConstraints row3 = new RowConstraints(150);
         row1.setVgrow( Priority.SOMETIMES );
         row3.setVgrow( Priority.SOMETIMES );
 
         gridPane.getColumnConstraints().addAll( column1 , column2 , column1 );
         gridPane.getRowConstraints().addAll( row1 , row2 , row1 );
+
+        gridPane.setHgap(30);
+
+        // scrollable window
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(gridPane);
+
+        // VBox that holds the scrollPane
+        VBox mainLayout = new VBox();
+        mainLayout.getChildren().addAll(scrollPane);
 
         // Buttons
         saveButton = new Button("Save");
@@ -133,23 +156,29 @@ public class AdventureGameView {
 
         helpButton = new Button("Instructions");
         helpButton.setId("Instructions");
-        customizeButton(helpButton, 200, 50);
+        customizeButton(helpButton, 170, 50);
         makeButtonAccessible(helpButton, "Help Button", "This button gives game instructions.", "This button gives instructions on the game controls. Click it to learn how to play.");
         addInstructionEvent();
 
         leaderboardButton = new Button("Leaderboard");
         leaderboardButton.setId("Leaderboard");
-        customizeButton(leaderboardButton, 200, 50);
+        customizeButton(leaderboardButton, 170, 50);
         makeButtonAccessible(leaderboardButton, "Leaderboard Button", "This button shows the leaderboard.", "This button shows the leaderboard. Click it to see the top 3 times.");
         addLeaderboardEvent();
 
+        settingButton = new Button("Setting");
+        settingButton.setId("Setting");
+        customizeButton(settingButton, 150,50);
+        makeButtonAccessible(settingButton, "Setting Button", "This button sets the font size.", "This button adjust the font size and style. Click it in order to abjust the game font size and style.");
+        addSettingEvent();
+
         HBox topButtons = new HBox();
-        topButtons.getChildren().addAll(saveButton, helpButton, leaderboardButton, loadButton);
+        topButtons.getChildren().addAll(saveButton, helpButton, leaderboardButton, settingButton, loadButton);
         topButtons.setSpacing(10);
         topButtons.setAlignment(Pos.CENTER);
 
         inputTextField = new TextField();
-        inputTextField.setFont(new Font("Arial", 16));
+        inputTextField.setFont(new Font("Arial", currentFontSize));
         inputTextField.setFocusTraversable(true);
 
         inputTextField.setAccessibleRole(AccessibleRole.TEXT_AREA);
@@ -159,24 +188,31 @@ public class AdventureGameView {
         addTextHandlingEvent(); //attach an event to this input field
 
         //labels for inventory and room items
-        Label objLabel =  new Label("Objects in Room");
+        objLabel =  new Label("Objects in Room");
         objLabel.setAlignment(Pos.CENTER);
+        objLabel.setWrapText(true);
+        objLabel.setTextOverrun(OverrunStyle.CLIP);
         objLabel.setStyle("-fx-text-fill: white;");
-        objLabel.setFont(new Font("Arial", 16));
+        objLabel.setFont(new Font("Arial", currentFontSize));
+        setFontStyleLabel(currentFontStyle, objLabel);
 
-        Label invLabel =  new Label("Your Inventory");
+        invLabel =  new Label("Your Inventory");
         invLabel.setAlignment(Pos.CENTER);
+        invLabel.setWrapText(true);
+        invLabel.setTextOverrun(OverrunStyle.CLIP);
         invLabel.setStyle("-fx-text-fill: white;");
-        invLabel.setFont(new Font("Arial", 16));
+        invLabel.setFont(new Font("Arial", currentFontSize));
+        setFontStyleLabel(currentFontStyle, invLabel);
 
         //add all the widgets to the GridPane
         gridPane.add( objLabel, 0, 0, 1, 1 );  // Add label
         gridPane.add( topButtons, 1, 0, 1, 1 );  // Add buttons
         gridPane.add( invLabel, 2, 0, 1, 1 );  // Add label
 
-        Label commandLabel = new Label("What would you like to do?");
+        commandLabel = new Label("What would you like to do?");
         commandLabel.setStyle("-fx-text-fill: white;");
-        commandLabel.setFont(new Font("Arial", 16));
+        commandLabel.setFont(new Font("Arial", currentFontSize));
+        setFontStyleLabel(currentFontStyle, commandLabel);
 
         updateScene(""); //method displays an image and whatever text is supplied
         updateItems(); //update items shows inventory and objects in rooms
@@ -191,7 +227,7 @@ public class AdventureGameView {
         gridPane.add( textEntry, 0, 2, 3, 1 );
 
         // Render everything
-        var scene = new Scene( gridPane ,  1000, 800);
+        var scene = new Scene( mainLayout ,  1200, 700);
         scene.setFill(Color.BLACK);
         this.stage.setScene(scene);
         this.stage.setResizable(false);
@@ -211,7 +247,8 @@ public class AdventureGameView {
         int remainingTime = this.model.gameTimer.getRemainingTime();
         remainTimeLabel.setText("Time Remaining: " + Integer.toString(remainingTime) + " seconds");
         remainTimeLabel.setStyle("-fx-text-fill: white;");
-        remainTimeLabel.setFont(new Font("Arial", 20));
+        remainTimeLabel.setFont(new Font("Arial", currentFontSize));
+        setFontStyleLabel(currentFontStyle, remainTimeLabel);
         VBox timeBox = new VBox(remainTimeLabel);
         timeBox.setAlignment(Pos.BOTTOM_CENTER);
         gridPane.add(timeBox, 1, 1, 1, 1);
@@ -275,7 +312,8 @@ public class AdventureGameView {
      */
     private void customizeButton(Button inputButton, int w, int h) {
         inputButton.setPrefSize(w, h);
-        inputButton.setFont(new Font("Arial", 16));
+        inputButton.setFont(new Font("Arial", currentFontSize));
+        setFontStyleButton(currentFontStyle, inputButton);
         inputButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
     }
 
@@ -349,7 +387,7 @@ public class AdventureGameView {
             gridPane.getChildren().remove(inputTextField);
 
             inputTextField = new TextField();
-            inputTextField.setFont(new Font("Arial", 16));
+            inputTextField.setFont(new Font("Arial", currentFontSize));
             inputTextField.setFocusTraversable(true);
 
             inputTextField.setAccessibleRole(AccessibleRole.TEXT_AREA);
@@ -358,15 +396,16 @@ public class AdventureGameView {
             inputTextField.setAccessibleHelp("This is the area in which you can enter your name. Enter your name and hit return to continue.");
             saveAttempt();
 
-            Label commandLabel = new Label("Please enter your name:");
-            commandLabel.setStyle("-fx-text-fill: white;");
-            commandLabel.setFont(new Font("Arial", 16));
+            commandLabel_2 = new Label("Please enter your name:");
+            commandLabel_2.setStyle("-fx-text-fill: white;");
+            commandLabel_2.setFont(new Font("Arial", currentFontSize));
+            setFontStyleLabel(currentFontStyle, commandLabel_2);
 
             // adding the text area and submit button to a VBox
             VBox textEntry = new VBox();
             textEntry.setStyle("-fx-background-color: #000000;");
             textEntry.setPadding(new Insets(20, 20, 20, 20));
-            textEntry.getChildren().addAll(commandLabel, inputTextField);
+            textEntry.getChildren().addAll(commandLabel_2, inputTextField);
             textEntry.setSpacing(10);
             textEntry.setAlignment(Pos.CENTER);
             gridPane.add( textEntry, 0, 2, 3, 1 );
@@ -444,7 +483,7 @@ public class AdventureGameView {
 
         getRoomImage(); //get the image of the current room
         formatText(textToDisplay); //format the text to display
-        roomDescLabel.setPrefWidth(500);
+        roomDescLabel.setPrefWidth(700);
         roomDescLabel.setPrefHeight(500);
         roomDescLabel.setTextOverrun(OverrunStyle.CLIP);
         roomDescLabel.setWrapText(true);
@@ -472,11 +511,20 @@ public class AdventureGameView {
         if (textToDisplay == null || textToDisplay.isBlank()) {
             String roomDesc = this.model.getPlayer().getCurrentRoom().getRoomDescription() + "\n";
             String objectString = this.model.getPlayer().getCurrentRoom().getObjectString();
-            if (objectString != null && !objectString.isEmpty()) roomDescLabel.setText(roomDesc + "\n\nObjects in this room:\n" + objectString);
-            else roomDescLabel.setText(roomDesc);
+            if (objectString != null && !objectString.isEmpty()) {
+                roomDescLabel.setText(roomDesc + "\nObjects in this room:\n" + objectString);
+                roomDescLabel.setFont(new Font("Arial", currentFontSize));
+                setFontStyleLabel(currentFontStyle, roomDescLabel);
+            }
+            else {
+                roomDescLabel.setText(roomDesc);
+                roomDescLabel.setFont(new Font("Arial", currentFontSize));
+                setFontStyleLabel(currentFontStyle, roomDescLabel);
+            }
         } else roomDescLabel.setText(textToDisplay);
         roomDescLabel.setStyle("-fx-text-fill: white;");
-        roomDescLabel.setFont(new Font("Arial", 16));
+        roomDescLabel.setFont(new Font("Arial", currentFontSize));
+        setFontStyleLabel(currentFontStyle, roomDescLabel);
         roomDescLabel.setAlignment(Pos.CENTER);
     }
 
@@ -561,6 +609,14 @@ public class AdventureGameView {
         gridPane.add(scI,2,1);
     }
 
+    /**
+     * Creates a JavaFX Button representing an AdventureObject.
+     * The button is configured with the name of the AdventureObject as its text,
+     * an image corresponding to the AdventureObject's name, and additional properties.
+     *
+     * @param obj The AdventureObject for which the button is created.
+     * @return A configured JavaFX Button representing the AdventureObject.
+     */
     private Button getButton(AdventureObject obj) {
         Button button = new Button(obj.getName());
         button.setId(obj.getName());
@@ -576,8 +632,7 @@ public class AdventureGameView {
         return button;
     }
 
-
-    /*
+    /**
      * Show the game instructions.
      *
      * If helpToggle is FALSE:
@@ -592,38 +647,46 @@ public class AdventureGameView {
      * -- Again, REMOVE whatever nodes are within the cell beforehand!
      */
     public void showInstructions() {
+        String instruction = this.model.getInstructions();
+        instructionLabel.setText(instruction);
+        instructionLabel.setStyle("-fx-text-fill: white;");
+        instructionLabel.setFont(new Font("Arial", currentFontSize));
+        setFontStyleLabel(currentFontStyle, instructionLabel);
+        instructionLabel.setWrapText(true);
+        instructionLabel.setTextOverrun(OverrunStyle.CLIP);
+        instructionLabel.setMaxWidth(560);
+
+        VBox instructionBox = new VBox();
+        instructionBox.getChildren().add(instructionLabel);
+        instructionBox.setStyle("-fx-background-color: #000000;");
+        instructionBox.setPadding(new Insets(10));
+        instructionBox.setAlignment(Pos.CENTER);
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(instructionBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        VBox popupVBox = new VBox();
+        popupVBox.getChildren().add(scrollPane);
+        Scene popupScene = new Scene(popupVBox, 600, 600); // Set the preferred size of the pop-up window
+
+        Stage popupStage = new Stage();
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.setTitle("Game Instructions");
+        popupStage.setScene(popupScene);
 
         if (!helpToggle) {
+            popupStage.show(); // Show the pop-up window and wait for it to close
+            helpToggle = true;
 
-            roomImageView.setImage(null);
-
-            String text = this.model.getInstructions();
-            Label label = new Label();
-            label.setText(text);
-            formatText(text); //format the text to display
-            label.setPrefWidth(1000);
-            label.setPrefHeight(1000);
-            label.setStyle("-fx-text-fill:WHITE; -fx-font-size: 15;");
-            label.setTextOverrun(OverrunStyle.CLIP);
-            label.setWrapText(true);
-            VBox roomPane = new VBox(label);
-            roomPane.setPadding(new Insets(10));
-            roomPane.setAlignment(Pos.TOP_CENTER);
-            roomPane.setStyle("-fx-background-color: #000000;");
-
-            gridPane.add(roomPane, 1, 1);
+        } else {
+            popupStage.close(); // Close the pop-up window
+            helpToggle = false;
         }
-
-        else {
-            String roomDesc = this.model.getPlayer().getCurrentRoom().getRoomDescription();
-            String objectString = this.model.getPlayer().getCurrentRoom().getObjectString();
-
-            updateScene(roomDesc + "\n\nObjects in this room:\n" + objectString);
-        }
-        helpToggle = !helpToggle;
     }
 
-    /* showLeaderboard
+
+    /** showLeaderboard
      * Show the game's leaderboard.
      */
     public void showLeaderboard() {
@@ -634,7 +697,7 @@ public class AdventureGameView {
 
             StringBuilder source = new StringBuilder();
 
-            source.append("LEADERBOARD\n\n\n\n");
+            source.append("LEADERBOARD\n\n\n");
 
             HashMap sortedMap = new HashMap<String, Integer>();
             sortedMap = sortByValue(Leaderboard.bestTimes);
@@ -643,19 +706,19 @@ public class AdventureGameView {
                 source.append(key).append(" : ").append(Leaderboard.bestTimes.get(key)).append("s\n");
             }
 
-
             String text = source.toString();
-            Label label = new Label();
-            label.setText(text);
+            leaderboardLabel.setText(text);
             formatText(text); //format the text to display
-            label.setPrefWidth(1000);
-            label.setPrefHeight(1000);
-            label.setStyle("-fx-text-fill:WHITE; -fx-font-size: 25;");
-            label.setTextOverrun(OverrunStyle.CLIP);
-            label.setWrapText(true);
-            label.setAlignment(Pos.CENTER);
+            leaderboardLabel.setPrefWidth(1000);
+            leaderboardLabel.setPrefHeight(1000);
+            leaderboardLabel.setFont(new Font("Arial", currentFontSize));
+            setFontStyleLabel(currentFontStyle, leaderboardLabel);
+            leaderboardLabel.setStyle("-fx-text-fill:WHITE;");
+            leaderboardLabel.setTextOverrun(OverrunStyle.CLIP);
+            leaderboardLabel.setWrapText(true);
+            leaderboardLabel.setAlignment(Pos.CENTER);
 
-            VBox roomPane = new VBox(label);
+            VBox roomPane = new VBox(leaderboardLabel);
             roomPane.setPadding(new Insets(10));
             roomPane.setAlignment(Pos.TOP_CENTER);
             roomPane.setStyle("-fx-background-color: #000000;");
@@ -672,7 +735,7 @@ public class AdventureGameView {
         leaderboardToggle = !leaderboardToggle;
     }
 
-    /* sortByValue
+    /** sortByValue
      * Helper method to sort and return the Hashmap based on the time(integer value).
      */
     public static HashMap<String, Integer> sortByValue(HashMap<String, Integer> hm) {
@@ -693,6 +756,125 @@ public class AdventureGameView {
             temp.put(aa.getKey(), aa.getValue());
         }
         return temp;
+    }
+
+
+    /**
+     * Retrieves a list containing all the Label objects associated with the current class.
+     * The labels include room description, object description, inventory details, and command information.
+     *
+     * @return A List of Label objects representing various informational elements in the class.
+     */
+    private static List<Label> getAllLabels() {
+        List<Label> labels = new ArrayList<>();
+        labels.add(roomDescLabel);
+        labels.add(objLabel);
+        labels.add(invLabel);
+        labels.add(commandLabel);
+        labels.add(commandLabel_2);
+        labels.add(remainTimeLabel);
+        labels.add(leaderboardLabel);
+        labels.add(instructionLabel);
+        return labels;
+    }
+
+    /**
+     * Retrieves a list containing all the Button objects associated with the current class.
+     * The buttons include functionality for saving, loading, accessing help, and adjusting settings.
+     *
+     * @return A List of Button objects representing various actions in the class.
+     */
+    private static List<Button> getAllButtons() {
+        List<Button> buttons = new ArrayList<>();
+        buttons.add(saveButton);
+        buttons.add(loadButton);
+        buttons.add(helpButton);
+        buttons.add(settingButton);
+        buttons.add(leaderboardButton);
+        return buttons;
+    }
+
+    /**
+     * Updates the font size of all labels and buttons in the current class.
+     * The font size can be set to "Big" (size 24) or the default size "Normal" (size 16).
+     *
+     * @param newSize The desired font size, either "Big" or "Normal".
+     */
+    public static void updateFontSize(String newSize) {
+        if (Objects.equals(newSize, "Big")) {
+            for (Label label : getAllLabels()) {
+                label.setFont(new Font(24));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(new Font(24));
+            }
+            currentFontSize = 24;
+        } else {
+            for (Label label : getAllLabels()) {
+                label.setFont(new Font(16));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(new Font(16));
+            }
+            currentFontSize = 16;
+        }
+
+    }
+
+    /**
+     * Updates the font style of all labels and buttons in the current class.
+     * The font style can be set to "Bold" or the default style "Normal".
+     *
+     * @param newStyle The desired font style, either "Bold" or "Normal".
+     */
+    public static void updateFontStyle(String newStyle) {
+        if (Objects.equals(newStyle, "Bold")) {
+            for (Label label : getAllLabels()) {
+                label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(Font.font(button.getFont().getFamily(),FontWeight.BOLD, button.getFont().getSize()));
+            }
+            currentFontStyle = "Bold";
+        } else {
+            for (Label label : getAllLabels()) {
+                label.setFont(Font.font(label.getFont().getFamily(),FontWeight.NORMAL, label.getFont().getSize()));
+            }
+            for (Button button : getAllButtons()) {
+                button.setFont(Font.font(button.getFont().getFamily(),FontWeight.NORMAL, button.getFont().getSize()));
+            }
+            currentFontStyle = "Regular";
+        }
+    }
+
+    /**
+     * Sets the font style for a JavaFX Label.
+     *
+     * @param style  The desired font style, either "Bold" or "Normal".
+     * @param label  The JavaFX Label for which the font style needs to be set.
+     */
+    public static void setFontStyleLabel(String style, Label label) {
+        if (Objects.equals(style, "Bold")) {
+        label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
+        }
+        else {
+            label.setFont(Font.font(label.getFont().getFamily(), FontWeight.NORMAL, label.getFont().getSize()));
+        }
+    }
+
+    /**
+     * Sets the font style for a JavaFX Button.
+     *
+     * @param style   The desired font style, either "Bold" or "Normal".
+     * @param button  The JavaFX Button for which the font style needs to be set.
+     */
+    public static void setFontStyleButton(String style, Button button) {
+        if (Objects.equals(style, "Bold")) {
+            button.setFont(Font.font(button.getFont().getFamily(), FontWeight.BOLD, button.getFont().getSize()));
+        }
+        else {
+            button.setFont(Font.font(button.getFont().getFamily(), FontWeight.NORMAL, button.getFont().getSize()));
+        }
     }
 
     /**
@@ -736,6 +918,17 @@ public class AdventureGameView {
         loadButton.setOnAction(e -> {
             gridPane.requestFocus();
             LoadView loadView = new LoadView(this);
+        });
+    }
+
+    /**
+     * This method handles the event related to the
+     * setting button.
+     */
+    public void addSettingEvent() {
+        settingButton.setOnAction(e -> {
+            gridPane.requestFocus();
+            SettingView settingView = new SettingView(this);
         });
     }
 

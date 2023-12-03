@@ -5,78 +5,117 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import views.AdventureGameView;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Class SaveView.
- *
- * Saves Serialized adventure games.
+ * The SettingView class represents the settings window in the adventure game.
+ * Users can adjust font size and style preferences using this window.
  */
-public class SaveView {
+public class SettingView {
 
-    static String saveFileSuccess = "Saved Adventure Game!!";
-    static String saveFileExistsError = "Error: File already exists";
-    static String saveFileNotSerError = "Error: File must end with .ser";
-    private static Label saveFileErrorLabel = new Label("");
-    private static Label saveGameLabel = new Label(String.format("Enter name of file to save"));
-    private TextField saveFileNameTextField = new TextField("");
-    private static Button saveGameButton = new Button("Save Game");
-    private static Button closeWindowButton = new Button("Close Window");
-
+    private static Label settingLabel = new Label(String.format("Select font size and style you like."));
+    private static Label fontsizeLabel = new Label(String.format(""));
+    private static Label fontstyleLabel = new Label(String.format(""));
+    public static Button bigSizeButton, regularSizeButton;
+    public static Button boldStyleButton, regularStyleButton;
+    private static Button closeWindowButton;
     private static int currentFontSize = 16; //to keep font size information
     private static String currentFontStyle; //to keep font style information
 
-    private AdventureGameView adventureGameView;
-
     /**
-     * Constructor
+     * Constructs a SettingView associated with the provided AdventureGameView.
+     *
+     * @param adventureGameView The AdventureGameView instance associated with this SettingView.
      */
-    public SaveView(AdventureGameView adventureGameView) {
-        this.adventureGameView = adventureGameView;
+    public SettingView(AdventureGameView adventureGameView) {
         final Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initOwner(adventureGameView.stage);
         VBox dialogVbox = new VBox(20);
         dialogVbox.setPadding(new Insets(20, 20, 20, 20));
         dialogVbox.setStyle("-fx-background-color: #121212;");
-        saveGameLabel.setId("SaveGame"); // DO NOT MODIFY ID
-        saveFileErrorLabel.setId("SaveFileErrorLabel");
-        saveFileNameTextField.setId("SaveFileNameTextField");
-        saveGameLabel.setStyle("-fx-text-fill: #e8e6e3;");
-        saveGameLabel.setFont(new Font(currentFontSize));
-        setFontStyleLabel(currentFontStyle, saveGameLabel);
-        saveFileErrorLabel.setStyle("-fx-text-fill: #e8e6e3;");
-        saveFileErrorLabel.setFont(new Font(currentFontSize));
-        setFontStyleLabel(currentFontStyle, saveFileErrorLabel);
-        saveFileNameTextField.setStyle("-fx-text-fill: #000000;");
-        saveFileNameTextField.setFont(new Font(16));
+        settingLabel.setId("SaveGame"); // DO NOT MODIFY ID
+        fontsizeLabel.setId("fontSizeLabel");
+        fontstyleLabel.setId("fontStyleLabel");
+        settingLabel.setStyle("-fx-text-fill: #e8e6e3;");
+        settingLabel.setFont(new Font(currentFontSize));
+        setFontStyleLabel(currentFontStyle, settingLabel);
+        fontsizeLabel.setStyle("-fx-text-fill: #e8e6e3;");
+        fontsizeLabel.setFont(new Font(currentFontSize));
+        setFontStyleLabel(currentFontStyle, fontsizeLabel);
+        fontstyleLabel.setStyle("-fx-text-fill: #e8e6e3;");
+        fontstyleLabel.setFont(new Font(currentFontSize));
+        setFontStyleLabel(currentFontStyle, fontstyleLabel);
 
-        String gameName = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()) + ".ser";
-        saveFileNameTextField.setText(gameName);
+        bigSizeButton = new Button("Big Size");
+        bigSizeButton.setId("bigSizeButton"); // DO NOT MODIFY ID
+        bigSizeButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
+        bigSizeButton.setPrefSize(200, 50);
+        bigSizeButton.setFont(new Font(currentFontSize));
+        setFontStyleButton(currentFontStyle, bigSizeButton);
+        AdventureGameView.makeButtonAccessible(bigSizeButton, "big size button", "This is a button to set the font size big.", "Use this button to make the font size bigger.");
+        bigSizeButton.setOnAction(e -> {
+            AdventureGameView.updateFontSize("Big");
+            SaveView.updateFontSize("Big");
+            LoadView.updateFontSize("Big");
+            updateFontSize("Big");
+            fontsizeLabel.setText("Font size selected: Big");
+        });
 
-        saveGameButton = new Button("Save board");
-        saveGameButton.setId("SaveBoardButton"); // DO NOT MODIFY ID
-        saveGameButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
-        saveGameButton.setPrefSize(200, 50);
-        saveGameButton.setFont(new Font(currentFontSize));
-        setFontStyleButton(currentFontStyle, saveGameButton);
-        AdventureGameView.makeButtonAccessible(saveGameButton, "save game", "This is a button to save the game", "Use this button to save the current game.");
-        saveGameButton.setOnAction(e -> saveGame());
+        regularSizeButton = new Button("Regular Size");
+        regularSizeButton.setId("regularSizeButton"); // DO NOT MODIFY ID
+        regularSizeButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
+        regularSizeButton.setPrefSize(200, 50);
+        regularSizeButton.setFont(new Font(currentFontSize));
+        setFontStyleButton(currentFontStyle, regularSizeButton);
+        AdventureGameView.makeButtonAccessible(regularSizeButton, "regular size button", "This is a button to set the font size regular.", "Use this button to make the font size regular.");
+        regularSizeButton.setOnAction(e -> {
+            AdventureGameView.updateFontSize("Regular");
+            SaveView.updateFontSize("Regular");
+            LoadView.updateFontSize("Regular");
+            updateFontSize("Regular");
+            fontsizeLabel.setText("Font size selected: Regular");
+        });
+
+        regularStyleButton = new Button("Regular Style");
+        regularStyleButton.setId("regularStyleButton"); // DO NOT MODIFY ID
+        regularStyleButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
+        regularStyleButton.setPrefSize(200, 50);
+        regularStyleButton.setFont(new Font(currentFontSize));
+        setFontStyleButton(currentFontStyle, regularStyleButton);
+        AdventureGameView.makeButtonAccessible(regularStyleButton, "big size button", "This is a button to set the font size big.", "Use this button to make the font size bigger.");
+        regularStyleButton.setOnAction(e -> {
+            AdventureGameView.updateFontStyle("Regular");
+            SaveView.updateFontStyle("Regular");
+            LoadView.updateFontStyle("Regular");
+            updateFontStyle("Regular");
+            fontstyleLabel.setText("Font style selected: Regular");
+        });
+
+        boldStyleButton = new Button("Bold Style");
+        boldStyleButton.setId("bigSizeButton"); // DO NOT MODIFY ID
+        boldStyleButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
+        boldStyleButton.setPrefSize(200, 50);
+        boldStyleButton.setFont(new Font(currentFontSize));
+        setFontStyleButton(currentFontStyle, boldStyleButton);
+        AdventureGameView.makeButtonAccessible(boldStyleButton, "big size button", "This is a button to set the font size big.", "Use this button to make the font size bigger.");
+        boldStyleButton.setOnAction(e -> {
+            AdventureGameView.updateFontStyle("Bold");
+            SaveView.updateFontStyle("Bold");
+            LoadView.updateFontStyle("Bold");
+            updateFontStyle("Bold");
+            fontstyleLabel.setText("Font style selected: Bold");
+        });
 
         closeWindowButton = new Button("Close Window");
         closeWindowButton.setId("closeWindowButton"); // DO NOT MODIFY ID
@@ -87,10 +126,13 @@ public class SaveView {
         closeWindowButton.setOnAction(e -> dialog.close());
         AdventureGameView.makeButtonAccessible(closeWindowButton, "close window", "This is a button to close the save game window", "Use this button to close the save game window.");
 
-        VBox saveGameBox = new VBox(10, saveGameLabel, saveFileNameTextField, saveGameButton, saveFileErrorLabel, closeWindowButton);
-        saveGameBox.setAlignment(Pos.CENTER);
+        HBox fontSizeButtonBox = new HBox(20, bigSizeButton, regularSizeButton);
+        HBox fontStyleButtonBox = new HBox(20, regularStyleButton, boldStyleButton);
 
-        dialogVbox.getChildren().add(saveGameBox);
+        VBox settingBox = new VBox(10, settingLabel, fontSizeButtonBox, fontsizeLabel, fontStyleButtonBox, fontstyleLabel, closeWindowButton);
+        settingBox.setAlignment(Pos.CENTER);
+
+        dialogVbox.getChildren().add(settingBox);
         Scene dialogScene = new Scene(dialogVbox, 400, 400);
         dialog.setScene(dialogScene);
         dialog.show();
@@ -104,8 +146,9 @@ public class SaveView {
      */
     private static List<Label> getAllLabels() {
         List<Label> labels = new ArrayList<>();
-        labels.add(saveFileErrorLabel);
-        labels.add(saveGameLabel);
+        labels.add(settingLabel);
+        labels.add(fontsizeLabel);
+        labels.add(fontstyleLabel);
         return labels;
     }
 
@@ -117,7 +160,10 @@ public class SaveView {
      */
     private static List<Button> getAllButtons() {
         List<Button> buttons = new ArrayList<>();
-        buttons.add(saveGameButton);
+        buttons.add(bigSizeButton);
+        buttons.add(regularSizeButton);
+        buttons.add(boldStyleButton);
+        buttons.add(regularStyleButton);
         buttons.add(closeWindowButton);
         return buttons;
     }
@@ -202,37 +248,6 @@ public class SaveView {
         }
         else {
             button.setFont(Font.font(button.getFont().getFamily(), FontWeight.NORMAL, button.getFont().getSize()));
-        }
-    }
-
-    /**
-     * Saves the Game
-     * Save the game to a serialized (binary) file.
-     * Get the name of the file from saveFileNameTextField.
-     * Files will be saved to the Games/Saved directory.
-     * If the file already exists, set the saveFileErrorLabel to the text in saveFileExistsError
-     * If the file doesn't end in .ser, set the saveFileErrorLabel to the text in saveFileNotSerError
-     * Otherwise, load the file and set the saveFileErrorLabel to the text in saveFileSuccess
-     */
-    private void saveGame() {
-
-        File theDir = new File("Games/Saved/");
-        if (!theDir.exists()) {
-            theDir.mkdirs();
-        }
-
-        File file = new File("Games/Saved/" + saveFileNameTextField.getText());
-
-        boolean exists = file.exists();
-
-        if (exists) {
-            this.saveFileErrorLabel.setText(saveFileExistsError);
-        } else if (!(saveFileNameTextField.getText().contains(".ser"))) {
-            saveFileErrorLabel.setText(saveFileNotSerError);
-        }
-        else {
-            this.adventureGameView.model.saveModel(file);
-            saveFileErrorLabel.setText(saveFileSuccess);
         }
     }
 }
