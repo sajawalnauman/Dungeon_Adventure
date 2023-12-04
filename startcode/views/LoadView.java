@@ -261,6 +261,16 @@ public class LoadView {
             if (game != null) {
                 this.adventureGameView.model = game;
                 selectGameLabel.setText(name);
+                if (this.adventureGameView.model.timerState.description().equals("ResumeTimerState")) {
+                    this.adventureGameView.startTimer();
+                    this.adventureGameView.model.gameTimer.startTimer();
+                    this.adventureGameView.inputTextField.setDisable(false);
+                    this.adventureGameView.objectsInRoom.setDisable(false);
+                    this.adventureGameView.objectsInInventory.setDisable(false);
+                } else {
+                    this.adventureGameView.model.gameTimer.stopTimer();
+                    this.adventureGameView.pauseResumeButton.fire();
+                }
             }
         }
 
@@ -272,9 +282,6 @@ public class LoadView {
 
         this.adventureGameView.updateItems();
         this.adventureGameView.updateScene(this.adventureGameView.model.player.getCurrentRoom().getRoomDescription());
-        this.adventureGameView.model.gameTimer.startTimer();
-        this.adventureGameView.startTimer();
-
 
     }
 
