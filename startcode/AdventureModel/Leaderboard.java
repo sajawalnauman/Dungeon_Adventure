@@ -7,14 +7,16 @@ public class Leaderboard implements Serializable {
 
     public static HashMap<String, Integer> bestTimes;
 
-    /* Leaderboard
+    /** Leaderboard
+     * __________________________
      * Initialize the leaderboard.
      */
     public Leaderboard() {
         bestTimes = new HashMap<>();
     }
 
-    /* addTime
+    /** addTime
+     * __________________________
      * Add the current Player's name and time into the bestTimes Hashmap to be shown on the leaderboard.
      * Only add up to 3 best times.
      */
