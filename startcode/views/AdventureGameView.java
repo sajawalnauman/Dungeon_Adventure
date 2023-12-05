@@ -1,21 +1,16 @@
 package views;
 
 import AdventureModel.*;
-import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
-import javafx.scene.Node;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
@@ -44,11 +39,11 @@ import java.util.*;
  * ZOOM LINK: https://utoronto-my.sharepoint.com/:v:/g/personal/sajawal_nauman_mail_utoronto_ca/EeO5Isy6H6tKjGsxDBvihOkBASPWQ9TN89bToxT9mTGt2g    (SHAREPOINT LINK)
  * PASSWORD: <PASSWORD HERE>    (UofT Account will have access)
  */
-public class AdventureGameView {
+public class AdventureGameView implements Observer{
 
     AdventureGame model; //model of the game
     public Stage stage; //stage on which all is rendered
-    static Button saveButton, loadButton, helpButton, leaderboardButton, settingButton; //buttons
+    static Button saveButton, loadButton, helpButton, leaderboardButton, settingButton, pauseResumeButton; //buttons
     Boolean helpToggle = false; //is help on display?
     Boolean leaderboardToggle = false; //is leaderboard on display?
 
@@ -72,8 +67,11 @@ public class AdventureGameView {
     private MediaPlayer mediaPlayer; //to play audio
     private boolean mediaPlaying; //to know if the audio is playing
 
-    private Timeline timeline;
-    static Label remainTimeLabel = new Label(); //to hold the remaining time
+    private Timeline timeline; // to update the time of the game timer
+    static Label remainTimeLabel = new Label(); // to display the remain time of the game timer
+
+    SaveView currentSaveView; // Represents the current SaveView instance for managing the save game GUI.
+    LoadView currentLoadView; // Represents the current LoadView instance for handling the load game GUI.
 
     /**
      * Adventure Game View Constructor
@@ -122,14 +120,16 @@ public class AdventureGameView {
         column1.setHgrow( Priority.SOMETIMES );
 
         // Row constraints
-        RowConstraints row1 = new RowConstraints();
+        RowConstraints row1 = new RowConstraints(100);
         RowConstraints row2 = new RowConstraints( 500 );
-        RowConstraints row3 = new RowConstraints(150);
+        RowConstraints row3 = new RowConstraints(30);
+        RowConstraints row4 = new RowConstraints(130);
         row1.setVgrow( Priority.SOMETIMES );
         row3.setVgrow( Priority.SOMETIMES );
+        row4.setVgrow( Priority.SOMETIMES );
 
         gridPane.getColumnConstraints().addAll( column1 , column2 , column1 );
-        gridPane.getRowConstraints().addAll( row1 , row2 , row1 );
+        gridPane.getRowConstraints().addAll( row1 , row2 , row3, row4 );
 
         gridPane.setHgap(30);
 
@@ -162,20 +162,37 @@ public class AdventureGameView {
 
         leaderboardButton = new Button("Leaderboard");
         leaderboardButton.setId("Leaderboard");
-        customizeButton(leaderboardButton, 170, 50);
+        customizeButton(leaderboardButton, 200, 50);
         makeButtonAccessible(leaderboardButton, "Leaderboard Button", "This button shows the leaderboard.", "This button shows the leaderboard. Click it to see the top 3 times.");
         addLeaderboardEvent();
 
         settingButton = new Button("Setting");
         settingButton.setId("Setting");
         customizeButton(settingButton, 150,50);
-        makeButtonAccessible(settingButton, "Setting Button", "This button sets the font size.", "This button adjust the font size and style. Click it in order to abjust the game font size and style.");
+        makeButtonAccessible(settingButton, "Setting Button", "This button sets the font size.", "This button adjust the font size and style. Click it in order to adjust the game font size and style.");
         addSettingEvent();
 
+        //Pause and Resume Button
+        pauseResumeButton = new Button("Pause/Resume");
+        pauseResumeButton.setId("Pause/Resume");
+        pauseResumeButton.setFont(new Font("Arial", currentFontSize));
+        setFontStyleButton(currentFontStyle, pauseResumeButton);
+        customizeButton(pauseResumeButton, 200, 50);
+        makeButtonAccessible(pauseResumeButton, "Pause and Resume Button", "This button used to pause and resume the timer.", "This button allows you to pause or resume the timer. Click it to toggle between pause and resume modes.");
+        addPauseResumeEvent();
+
         HBox topButtons = new HBox();
-        topButtons.getChildren().addAll(saveButton, helpButton, leaderboardButton, settingButton, loadButton);
+        topButtons.getChildren().addAll(saveButton, helpButton, loadButton);
+        HBox bottomButtons = new HBox();
+        bottomButtons.getChildren().addAll(pauseResumeButton, leaderboardButton, settingButton);
         topButtons.setSpacing(10);
         topButtons.setAlignment(Pos.CENTER);
+        bottomButtons.setSpacing(10);
+        bottomButtons.setAlignment(Pos.CENTER);
+
+        VBox buttonBox = new VBox();
+        buttonBox.getChildren().addAll(topButtons, bottomButtons);
+        buttonBox.setSpacing(10);
 
         inputTextField = new TextField();
         inputTextField.setFont(new Font("Arial", currentFontSize));
@@ -206,7 +223,7 @@ public class AdventureGameView {
 
         //add all the widgets to the GridPane
         gridPane.add( objLabel, 0, 0, 1, 1 );  // Add label
-        gridPane.add( topButtons, 1, 0, 1, 1 );  // Add buttons
+        gridPane.add( buttonBox, 1, 0, 1, 1 );  // Add buttons
         gridPane.add( invLabel, 2, 0, 1, 1 );  // Add label
 
         commandLabel = new Label("What would you like to do?");
@@ -224,21 +241,50 @@ public class AdventureGameView {
         textEntry.getChildren().addAll(commandLabel, inputTextField);
         textEntry.setSpacing(10);
         textEntry.setAlignment(Pos.CENTER);
-        gridPane.add( textEntry, 0, 2, 3, 1 );
+        gridPane.add( textEntry, 0, 3, 3, 1 );
 
         // Render everything
-        var scene = new Scene( mainLayout ,  1200, 700);
+        var scene = new Scene( mainLayout ,  1200, 800);
         scene.setFill(Color.BLACK);
         this.stage.setScene(scene);
         this.stage.setResizable(false);
         this.stage.show();
     }
 
+    /**
+     * addPauseResumeEvent()
+     * __________________________
+     * Add an event handler to the pauseResumeButton.
+     *
+     * When the button is clicked, it checks the current state
+     * of the game timer and performs the following actions:
+     * - If the game timer is running,
+     * it pauses the game by changing its state, stopping the timer
+     * - If the game timer is paused,
+     * it resumes the game by changing its state, starting the timer
+     */
+    public void addPauseResumeEvent() {
+        pauseResumeButton.setOnAction(e -> {
+            if (this.model.gameTimer.isRunning()) {
+                this.model.changeState();
+                stopTimer();
+                inputTextField.setDisable(true);
+                objectsInRoom.setDisable(true);
+                objectsInInventory.setDisable(true);
+            } else {
+                this.model.changeState();
+                startTimer();
+                inputTextField.setDisable(false);
+                objectsInRoom.setDisable(false);
+                objectsInInventory.setDisable(false);
+            }
+        });
+    }
 
     /**
      * updateTimerLabel()
      * __________________________
-     * update TimerLabel as remain time is updating
+     * Update TimerLabel as remain time is updating
      * if remaining Time is less than 0
      * stop the timer and exit the game.
      * */
@@ -251,9 +297,10 @@ public class AdventureGameView {
         setFontStyleLabel(currentFontStyle, remainTimeLabel);
         VBox timeBox = new VBox(remainTimeLabel);
         timeBox.setAlignment(Pos.BOTTOM_CENTER);
-        gridPane.add(timeBox, 1, 1, 1, 1);
+        gridPane.add(timeBox, 1, 2, 1, 1);
         if (remainingTime <= 0) {
             stopTimer();
+            this.model.gameTimer.stopTimer();
             Platform.exit();
         }
     }
@@ -261,8 +308,9 @@ public class AdventureGameView {
     /**
      * startTimer()
      * __________________________
-     * timeline
-     * */
+     * Starts timeline and scheduling a timeline to regularly update the timer label.
+     * If the timer is already running, it is stopped before starting again.
+     */
     public void startTimer() {
         if (timeline != null) {
             timeline.stop();
@@ -276,6 +324,12 @@ public class AdventureGameView {
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
+
+    /**
+     * stopTimer()
+     *  __________________________
+     * Halts the timeline updates.
+     */
     public void stopTimer() {
         if (timeline != null) {
             timeline.stop();
@@ -320,16 +374,16 @@ public class AdventureGameView {
     /**
      * addTextHandlingEvent
      * __________________________
-     * Add an event handler to the myTextField attribute 
+     * Add an event handler to the myTextField attribute
      *
-     * Your event handler should respond when users 
-     * hits the ENTER or TAB KEY. If the user hits 
+     * Your event handler should respond when users
+     * hits the ENTER or TAB KEY. If the user hits
      * the ENTER Key, strip white space from the
-     * input to myTextField and pass the stripped 
+     * input to myTextField and pass the stripped
      * string to submitEvent for processing.
      *
-     * If the user hits the TAB key, move the focus 
-     * of the scene onto any other node in the scene 
+     * If the user hits the TAB key, move the focus
+     * of the scene onto any other node in the scene
      * graph by invoking requestFocus method.
      */
     private void addTextHandlingEvent() {
@@ -408,10 +462,12 @@ public class AdventureGameView {
             textEntry.getChildren().addAll(commandLabel_2, inputTextField);
             textEntry.setSpacing(10);
             textEntry.setAlignment(Pos.CENTER);
-            gridPane.add( textEntry, 0, 2, 3, 1 );
+            gridPane.add( textEntry, 0, 3, 3, 1 );
 
             PauseTransition pause = new PauseTransition(Duration.seconds(10));
             pause.setOnFinished(event -> {
+                this.model.gameTimer.stopTimer();
+                stopTimer();
                 Platform.exit();
             });
             pause.play();
@@ -420,9 +476,12 @@ public class AdventureGameView {
             //Your code will need to display the image in the
             //current room and pause, then transition to
             //the forced room.
-
+            updateScene("");
+            updateItems();
+            inputTextField.setDisable(true);
             PauseTransition pause = new PauseTransition(Duration.seconds(2.5));
             pause.setOnFinished(event -> {
+                inputTextField.setDisable(false);
                 submitEvent(output);
             });
             pause.play();
@@ -459,7 +518,7 @@ public class AdventureGameView {
      * __________________________
      *
      * update the text in the GUI (within roomDescLabel)
-     * to show all the moves that are possible from the 
+     * to show all the moves that are possible from the
      * current room.
      */
     private void showCommands() {
@@ -476,7 +535,7 @@ public class AdventureGameView {
      * below the image.
      * Otherwise, the current room description will be dispplayed
      * below the image.
-     * 
+     *
      * @param textToDisplay the text to display below the image.
      */
     public void updateScene(String textToDisplay) {
@@ -504,7 +563,7 @@ public class AdventureGameView {
      * __________________________
      *
      * Format text for display.
-     * 
+     *
      * @param textToDisplay the text to be formatted for display.
      */
     private void formatText(String textToDisplay) {
@@ -561,8 +620,8 @@ public class AdventureGameView {
      * The method should populate the objectsInRoom and objectsInInventory Vboxes.
      * Each Vbox should contain a collection of nodes (Buttons, ImageViews, you can decide)
      * Each node represents a different object.
-     * 
-     * Images of each object are in the assets 
+     *
+     * Images of each object are in the assets
      * folders of the given adventure game.
      */
     public void updateItems() {
@@ -678,11 +737,8 @@ public class AdventureGameView {
         if (!helpToggle) {
             popupStage.show(); // Show the pop-up window and wait for it to close
             helpToggle = true;
-
-        } else {
-            popupStage.close(); // Close the pop-up window
-            helpToggle = false;
         }
+        popupStage.setOnCloseRequest(event -> {helpToggle = false;});
     }
 
 
@@ -724,6 +780,7 @@ public class AdventureGameView {
             roomPane.setStyle("-fx-background-color: #000000;");
 
             gridPane.add(roomPane, 1, 1);
+            updateTimerLabel();
         }
 
         else {
@@ -731,6 +788,7 @@ public class AdventureGameView {
             String objectString = this.model.getPlayer().getCurrentRoom().getObjectString();
 
             updateScene(roomDesc + "\n\nObjects in this room:\n" + objectString);
+            updateTimerLabel();
         }
         leaderboardToggle = !leaderboardToggle;
     }
@@ -791,7 +849,18 @@ public class AdventureGameView {
         buttons.add(helpButton);
         buttons.add(settingButton);
         buttons.add(leaderboardButton);
+        buttons.add(pauseResumeButton);
         return buttons;
+    }
+
+    /**
+     * Updates the observer with new size information.
+     *
+     * @param newSize The new size information received from the subject.
+     */
+    @Override
+    public void updateSize(String newSize) {
+        updateFontSize(newSize);
     }
 
     /**
@@ -819,6 +888,16 @@ public class AdventureGameView {
             currentFontSize = 16;
         }
 
+    }
+
+    /**
+     * Updates the observer with new style information.
+     *
+     * @param newStyle The new style information received from the subject.
+     */
+    @Override
+    public void updateStyle(String newStyle) {
+        updateFontStyle(newStyle);
     }
 
     /**
@@ -855,7 +934,7 @@ public class AdventureGameView {
      */
     public static void setFontStyleLabel(String style, Label label) {
         if (Objects.equals(style, "Bold")) {
-        label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
+            label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
         }
         else {
             label.setFont(Font.font(label.getFont().getFamily(), FontWeight.NORMAL, label.getFont().getSize()));
@@ -907,6 +986,7 @@ public class AdventureGameView {
         saveButton.setOnAction(e -> {
             gridPane.requestFocus();
             SaveView saveView = new SaveView(this);
+            currentSaveView = saveView;
         });
     }
 
@@ -918,6 +998,7 @@ public class AdventureGameView {
         loadButton.setOnAction(e -> {
             gridPane.requestFocus();
             LoadView loadView = new LoadView(this);
+            currentLoadView = loadView;
         });
     }
 
@@ -928,7 +1009,7 @@ public class AdventureGameView {
     public void addSettingEvent() {
         settingButton.setOnAction(e -> {
             gridPane.requestFocus();
-            SettingView settingView = new SettingView(this);
+            SettingView settingView = new SettingView(this, currentSaveView, currentLoadView);
         });
     }
 
@@ -954,7 +1035,7 @@ public class AdventureGameView {
     }
 
     /**
-     * This method stops articulations 
+     * This method stops articulations
      * (useful when transitioning to a new room or loading a new game)
      */
     public void stopArticulation() {

@@ -21,7 +21,8 @@ import java.util.Objects;
  * The SettingView class represents the settings window in the adventure game.
  * Users can adjust font size and style preferences using this window.
  */
-public class SettingView {
+public class SettingView implements Subject{
+    private List<Observer> observers = new ArrayList<>(); //list of observers: AdventureGameView, SaveView, LoadView
 
     private static Label settingLabel = new Label(String.format("Select font size and style you like."));
     private static Label fontsizeLabel = new Label(String.format(""));
@@ -37,7 +38,7 @@ public class SettingView {
      *
      * @param adventureGameView The AdventureGameView instance associated with this SettingView.
      */
-    public SettingView(AdventureGameView adventureGameView) {
+    public SettingView(AdventureGameView adventureGameView, SaveView saveView, LoadView loadView) {
         final Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initOwner(adventureGameView.stage);
@@ -57,6 +58,11 @@ public class SettingView {
         fontstyleLabel.setFont(new Font(currentFontSize));
         setFontStyleLabel(currentFontStyle, fontstyleLabel);
 
+        // register observers
+        addObserver(adventureGameView);
+        addObserver(saveView);
+        addObserver(loadView);
+
         bigSizeButton = new Button("Big Size");
         bigSizeButton.setId("bigSizeButton"); // DO NOT MODIFY ID
         bigSizeButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
@@ -65,9 +71,7 @@ public class SettingView {
         setFontStyleButton(currentFontStyle, bigSizeButton);
         AdventureGameView.makeButtonAccessible(bigSizeButton, "big size button", "This is a button to set the font size big.", "Use this button to make the font size bigger.");
         bigSizeButton.setOnAction(e -> {
-            AdventureGameView.updateFontSize("Big");
-            SaveView.updateFontSize("Big");
-            LoadView.updateFontSize("Big");
+            notifyObservers_Size("Big");
             updateFontSize("Big");
             fontsizeLabel.setText("Font size selected: Big");
         });
@@ -80,9 +84,7 @@ public class SettingView {
         setFontStyleButton(currentFontStyle, regularSizeButton);
         AdventureGameView.makeButtonAccessible(regularSizeButton, "regular size button", "This is a button to set the font size regular.", "Use this button to make the font size regular.");
         regularSizeButton.setOnAction(e -> {
-            AdventureGameView.updateFontSize("Regular");
-            SaveView.updateFontSize("Regular");
-            LoadView.updateFontSize("Regular");
+            notifyObservers_Size("Regular");
             updateFontSize("Regular");
             fontsizeLabel.setText("Font size selected: Regular");
         });
@@ -95,9 +97,7 @@ public class SettingView {
         setFontStyleButton(currentFontStyle, regularStyleButton);
         AdventureGameView.makeButtonAccessible(regularStyleButton, "big size button", "This is a button to set the font size big.", "Use this button to make the font size bigger.");
         regularStyleButton.setOnAction(e -> {
-            AdventureGameView.updateFontStyle("Regular");
-            SaveView.updateFontStyle("Regular");
-            LoadView.updateFontStyle("Regular");
+            notifyObservers_Style("Regular");
             updateFontStyle("Regular");
             fontstyleLabel.setText("Font style selected: Regular");
         });
@@ -110,9 +110,7 @@ public class SettingView {
         setFontStyleButton(currentFontStyle, boldStyleButton);
         AdventureGameView.makeButtonAccessible(boldStyleButton, "big size button", "This is a button to set the font size big.", "Use this button to make the font size bigger.");
         boldStyleButton.setOnAction(e -> {
-            AdventureGameView.updateFontStyle("Bold");
-            SaveView.updateFontStyle("Bold");
-            LoadView.updateFontStyle("Bold");
+            notifyObservers_Style("Bold");
             updateFontStyle("Bold");
             fontstyleLabel.setText("Font style selected: Bold");
         });
@@ -136,6 +134,44 @@ public class SettingView {
         Scene dialogScene = new Scene(dialogVbox, 400, 400);
         dialog.setScene(dialogScene);
         dialog.show();
+    }
+
+    /**
+     * Adds an observer to the list of observers for this subject.
+     *
+     * @param observer The observer to be added.
+     */
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    /**
+     * Notifies all registered observers about a change in size.
+     *
+     * @param newSize The new size information to be communicated to observers.
+     */
+    @Override
+    public void notifyObservers_Size(String newSize) {
+        for (Observer observer : observers) {
+            if (observer != null) {
+                observer.updateSize(newSize);
+            }
+        }
+    }
+
+    /**
+     * Notifies all registered observers about a change in style.
+     *
+     * @param newStyle The new style information to be communicated to observers.
+     */
+    @Override
+    public void notifyObservers_Style(String newStyle) {
+        for (Observer observer : observers) {
+            if (observer != null) {
+                observer.updateStyle(newStyle);
+            }
+        }
     }
 
     /**

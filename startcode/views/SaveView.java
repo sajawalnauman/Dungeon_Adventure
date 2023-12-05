@@ -27,7 +27,7 @@ import java.util.Objects;
  *
  * Saves Serialized adventure games.
  */
-public class SaveView {
+public class SaveView implements Observer{
 
     static String saveFileSuccess = "Saved Adventure Game!!";
     static String saveFileExistsError = "Error: File already exists";
@@ -123,6 +123,16 @@ public class SaveView {
     }
 
     /**
+     * Updates the observer with new size information.
+     *
+     * @param newSize The new size information received from the subject.
+     */
+    @Override
+    public void updateSize(String newSize) {
+        updateFontSize(newSize);
+    }
+
+    /**
      * Updates the font size of all labels and buttons in the current class.
      * The font size can be set to "Big" (size 24) or the default size "Normal" (size 16).
      *
@@ -147,6 +157,16 @@ public class SaveView {
             currentFontSize = 16;
         }
 
+    }
+
+    /**
+     * Updates the observer with new style information.
+     *
+     * @param newStyle The new style information received from the subject.
+     */
+    @Override
+    public void updateStyle(String newStyle) {
+        updateFontStyle(newStyle);
     }
 
     /**

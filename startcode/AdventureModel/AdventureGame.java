@@ -13,8 +13,9 @@ public class AdventureGame implements Serializable {
     private HashMap<String,String> synonyms = new HashMap<>(); //A HashMap to store synonyms of commands.
     private final String[] actionVerbs = {"QUIT","INVENTORY","TAKE","DROP"}; //List of action verbs (other than motions) that exist in all games. Motion vary depending on the room and game.
     public Player player; //The Player of the game.
-    public GameTimer gameTimer;
+    public GameTimer gameTimer; // The timer of the game.
     public Leaderboard leaderboard;
+    public TimerState timerState; // The state of the timer.
 
     /**
      * Adventure Game Constructor
@@ -36,8 +37,28 @@ public class AdventureGame implements Serializable {
     }
 
     /**
+     * setTimerState
+     * __________________________
+     * Set the current state of the game timer.
+     *
+     * @param timerState the state of the game timer
+     */
+    public void setTimerState(TimerState timerState) {
+        this.timerState = timerState;
+    }
+
+    /**
+     * changeState
+     * __________________________
+     * Change the state of the game timer.
+     */
+    public void changeState() {
+        this.timerState.buttonPush(this);
+    }
+
+    /**
      * Save the current state of the game to a file
-     * 
+     *
      * @param file pointer to file to write to
      */
     public void saveModel(File file) {
@@ -68,6 +89,9 @@ public class AdventureGame implements Serializable {
         // set up the timer
         this.gameTimer = new GameTimer();
         this.gameTimer.startTimer();
+
+        // set up the timer state
+        this.timerState = new ResumeTimerState();
     }
 
     /**
@@ -152,8 +176,11 @@ public class AdventureGame implements Serializable {
 
         if (motionTable.optionExists(inputArray[0])) {
             if (!movePlayer(inputArray[0])) {
-                if (this.player.getCurrentRoom().getMotionTable().getDirection().get(0).getDestinationRoom() == 0)
+                if (this.player.getCurrentRoom().getMotionTable().getDirection().get(0).getDestinationRoom() == 0) {
+                    gameTimer.stopTimer();
                     return "GAME OVER";
+
+                }
                 else return "FORCED";
             } //something is up here! We are dead or we won.
             return null;
@@ -186,7 +213,7 @@ public class AdventureGame implements Serializable {
     /**
      * getDirectoryName
      * __________________________
-     * Getter method for directory 
+     * Getter method for directory
      * @return directoryName
      */
     public String getDirectoryName() {
@@ -196,7 +223,7 @@ public class AdventureGame implements Serializable {
     /**
      * getInstructions
      * __________________________
-     * Getter method for instructions 
+     * Getter method for instructions
      * @return helpText
      */
     public String getInstructions() {
@@ -206,7 +233,7 @@ public class AdventureGame implements Serializable {
     /**
      * getPlayer
      * __________________________
-     * Getter method for Player 
+     * Getter method for Player
      */
     public Player getPlayer() {
         return this.player;
@@ -215,7 +242,7 @@ public class AdventureGame implements Serializable {
     /**
      * getRooms
      * __________________________
-     * Getter method for rooms 
+     * Getter method for rooms
      * @return map of key value pairs (integer to room)
      */
     public HashMap<Integer, Room> getRooms() {
@@ -225,7 +252,7 @@ public class AdventureGame implements Serializable {
     /**
      * getSynonyms
      * __________________________
-     * Getter method for synonyms 
+     * Getter method for synonyms
      * @return map of key value pairs (synonym to command)
      */
     public HashMap<String, String> getSynonyms() {
