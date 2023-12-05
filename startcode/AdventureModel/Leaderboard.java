@@ -2,6 +2,11 @@ package AdventureModel;
 import java.io.Serializable;
 import java.util.*;
 
+/** Leaderboard
+ * __________________________
+ * This class creates and keeps track of the Leaderboard object in the game.
+ * It also holds the top 3 current best times set by the players.
+ */
 
 public class Leaderboard implements Serializable {
 

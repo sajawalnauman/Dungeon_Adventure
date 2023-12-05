@@ -51,15 +51,15 @@ public class AdventureGameView implements Observer{
     static Label roomDescLabel = new Label(); //to hold room description and/or instructions
 
     static Label objLabel, invLabel; //to hold object and inventory description and/or instructions
-    static Label commandLabel; //to hold command description and/or instructions
-    static Label commandLabel_2 = new Label(); //to hold command description and/or instructions
+    static Label commandLabel = new Label(); //to hold command description and/or instructions
     static Label leaderboardLabel = new Label(); //to hold leaderboard
     static Label instructionLabel = new Label(); //to hold instruction
 
     VBox objectsInRoom = new VBox(); //to hold room items
     VBox objectsInInventory = new VBox(); //to hold inventory items
+    VBox textEntry = new VBox(); // to hold inputTextField
     ImageView roomImageView; //to hold room image
-    TextField inputTextField; //for user input
+    TextField inputTextField = new TextField(); //for user input
 
     private static int currentFontSize = 16; //to keep font size information
     private static String currentFontStyle; //to keep font style information
@@ -194,7 +194,6 @@ public class AdventureGameView implements Observer{
         buttonBox.getChildren().addAll(topButtons, bottomButtons);
         buttonBox.setSpacing(10);
 
-        inputTextField = new TextField();
         inputTextField.setFont(new Font("Arial", currentFontSize));
         inputTextField.setFocusTraversable(true);
 
@@ -226,7 +225,7 @@ public class AdventureGameView implements Observer{
         gridPane.add( buttonBox, 1, 0, 1, 1 );  // Add buttons
         gridPane.add( invLabel, 2, 0, 1, 1 );  // Add label
 
-        commandLabel = new Label("What would you like to do?");
+        commandLabel.setText("What would you like to do?");
         commandLabel.setStyle("-fx-text-fill: white;");
         commandLabel.setFont(new Font("Arial", currentFontSize));
         setFontStyleLabel(currentFontStyle, commandLabel);
@@ -235,7 +234,6 @@ public class AdventureGameView implements Observer{
         updateItems(); //update items shows inventory and objects in rooms
 
         // adding the text area and submit button to a VBox
-        VBox textEntry = new VBox();
         textEntry.setStyle("-fx-background-color: #000000;");
         textEntry.setPadding(new Insets(20, 20, 20, 20));
         textEntry.getChildren().addAll(commandLabel, inputTextField);
@@ -438,30 +436,15 @@ public class AdventureGameView implements Observer{
             updateScene("");
             updateItems();
 
-            gridPane.getChildren().remove(inputTextField);
+            gridPane.getChildren().remove(textEntry);
 
-            inputTextField = new TextField();
-            inputTextField.setFont(new Font("Arial", currentFontSize));
-            inputTextField.setFocusTraversable(true);
-
-            inputTextField.setAccessibleRole(AccessibleRole.TEXT_AREA);
-            inputTextField.setAccessibleRoleDescription("Text Entry Box");
             inputTextField.setAccessibleText("Enter your name in this box.");
             inputTextField.setAccessibleHelp("This is the area in which you can enter your name. Enter your name and hit return to continue.");
             saveAttempt();
 
-            commandLabel_2 = new Label("Please enter your name:");
-            commandLabel_2.setStyle("-fx-text-fill: white;");
-            commandLabel_2.setFont(new Font("Arial", currentFontSize));
-            setFontStyleLabel(currentFontStyle, commandLabel_2);
+            commandLabel.setText("Please enter your name:");
+            setFontStyleLabel(currentFontStyle, commandLabel);
 
-            // adding the text area and submit button to a VBox
-            VBox textEntry = new VBox();
-            textEntry.setStyle("-fx-background-color: #000000;");
-            textEntry.setPadding(new Insets(20, 20, 20, 20));
-            textEntry.getChildren().addAll(commandLabel_2, inputTextField);
-            textEntry.setSpacing(10);
-            textEntry.setAlignment(Pos.CENTER);
             gridPane.add( textEntry, 0, 3, 3, 1 );
 
             PauseTransition pause = new PauseTransition(Duration.seconds(10));
@@ -829,7 +812,6 @@ public class AdventureGameView implements Observer{
         labels.add(objLabel);
         labels.add(invLabel);
         labels.add(commandLabel);
-        labels.add(commandLabel_2);
         labels.add(remainTimeLabel);
         labels.add(leaderboardLabel);
         labels.add(instructionLabel);
