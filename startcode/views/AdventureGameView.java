@@ -1,21 +1,16 @@
 package views;
 
 import AdventureModel.*;
-import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
-import javafx.scene.Node;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
@@ -44,7 +39,7 @@ import java.util.*;
  * ZOOM LINK: https://utoronto-my.sharepoint.com/:v:/g/personal/sajawal_nauman_mail_utoronto_ca/EeO5Isy6H6tKjGsxDBvihOkBASPWQ9TN89bToxT9mTGt2g    (SHAREPOINT LINK)
  * PASSWORD: <PASSWORD HERE>    (UofT Account will have access)
  */
-public class AdventureGameView {
+public class AdventureGameView implements Observer{
 
     AdventureGame model; //model of the game
     public Stage stage; //stage on which all is rendered
@@ -74,6 +69,9 @@ public class AdventureGameView {
 
     private Timeline timeline; // to update the time of the game timer
     static Label remainTimeLabel = new Label(); // to display the remain time of the game timer
+
+    SaveView currentSaveView; // Represents the current SaveView instance for managing the save game GUI.
+    LoadView currentLoadView; // Represents the current LoadView instance for handling the load game GUI.
 
     /**
      * Adventure Game View Constructor
@@ -376,16 +374,16 @@ public class AdventureGameView {
     /**
      * addTextHandlingEvent
      * __________________________
-     * Add an event handler to the myTextField attribute 
+     * Add an event handler to the myTextField attribute
      *
-     * Your event handler should respond when users 
-     * hits the ENTER or TAB KEY. If the user hits 
+     * Your event handler should respond when users
+     * hits the ENTER or TAB KEY. If the user hits
      * the ENTER Key, strip white space from the
-     * input to myTextField and pass the stripped 
+     * input to myTextField and pass the stripped
      * string to submitEvent for processing.
      *
-     * If the user hits the TAB key, move the focus 
-     * of the scene onto any other node in the scene 
+     * If the user hits the TAB key, move the focus
+     * of the scene onto any other node in the scene
      * graph by invoking requestFocus method.
      */
     private void addTextHandlingEvent() {
@@ -520,7 +518,7 @@ public class AdventureGameView {
      * __________________________
      *
      * update the text in the GUI (within roomDescLabel)
-     * to show all the moves that are possible from the 
+     * to show all the moves that are possible from the
      * current room.
      */
     private void showCommands() {
@@ -537,7 +535,7 @@ public class AdventureGameView {
      * below the image.
      * Otherwise, the current room description will be dispplayed
      * below the image.
-     * 
+     *
      * @param textToDisplay the text to display below the image.
      */
     public void updateScene(String textToDisplay) {
@@ -565,7 +563,7 @@ public class AdventureGameView {
      * __________________________
      *
      * Format text for display.
-     * 
+     *
      * @param textToDisplay the text to be formatted for display.
      */
     private void formatText(String textToDisplay) {
@@ -622,8 +620,8 @@ public class AdventureGameView {
      * The method should populate the objectsInRoom and objectsInInventory Vboxes.
      * Each Vbox should contain a collection of nodes (Buttons, ImageViews, you can decide)
      * Each node represents a different object.
-     * 
-     * Images of each object are in the assets 
+     *
+     * Images of each object are in the assets
      * folders of the given adventure game.
      */
     public void updateItems() {
@@ -739,10 +737,8 @@ public class AdventureGameView {
         if (!helpToggle) {
             popupStage.show(); // Show the pop-up window and wait for it to close
             helpToggle = true;
-        } else {
-            popupStage.close(); // Close the pop-up window
-            helpToggle = false;
         }
+        popupStage.setOnCloseRequest(event -> {helpToggle = false;});
     }
 
 
@@ -858,6 +854,16 @@ public class AdventureGameView {
     }
 
     /**
+     * Updates the observer with new size information.
+     *
+     * @param newSize The new size information received from the subject.
+     */
+    @Override
+    public void updateSize(String newSize) {
+        updateFontSize(newSize);
+    }
+
+    /**
      * Updates the font size of all labels and buttons in the current class.
      * The font size can be set to "Big" (size 24) or the default size "Normal" (size 16).
      *
@@ -882,6 +888,16 @@ public class AdventureGameView {
             currentFontSize = 16;
         }
 
+    }
+
+    /**
+     * Updates the observer with new style information.
+     *
+     * @param newStyle The new style information received from the subject.
+     */
+    @Override
+    public void updateStyle(String newStyle) {
+        updateFontStyle(newStyle);
     }
 
     /**
@@ -918,7 +934,7 @@ public class AdventureGameView {
      */
     public static void setFontStyleLabel(String style, Label label) {
         if (Objects.equals(style, "Bold")) {
-        label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
+            label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
         }
         else {
             label.setFont(Font.font(label.getFont().getFamily(), FontWeight.NORMAL, label.getFont().getSize()));
@@ -970,6 +986,7 @@ public class AdventureGameView {
         saveButton.setOnAction(e -> {
             gridPane.requestFocus();
             SaveView saveView = new SaveView(this);
+            currentSaveView = saveView;
         });
     }
 
@@ -981,6 +998,7 @@ public class AdventureGameView {
         loadButton.setOnAction(e -> {
             gridPane.requestFocus();
             LoadView loadView = new LoadView(this);
+            currentLoadView = loadView;
         });
     }
 
@@ -991,7 +1009,7 @@ public class AdventureGameView {
     public void addSettingEvent() {
         settingButton.setOnAction(e -> {
             gridPane.requestFocus();
-            SettingView settingView = new SettingView(this);
+            SettingView settingView = new SettingView(this, currentSaveView, currentLoadView);
         });
     }
 
@@ -1017,7 +1035,7 @@ public class AdventureGameView {
     }
 
     /**
-     * This method stops articulations 
+     * This method stops articulations
      * (useful when transitioning to a new room or loading a new game)
      */
     public void stopArticulation() {

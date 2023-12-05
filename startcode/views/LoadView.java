@@ -26,7 +26,7 @@ import java.util.Objects;
  *
  * Loads Serialized adventure games.
  */
-public class LoadView {
+public class LoadView implements Observer {
 
     private AdventureGameView adventureGameView;
     private static Label selectGameLabel = new Label(String.format(""));
@@ -55,11 +55,9 @@ public class LoadView {
         GameList.setId("GameList");  // DO NOT MODIFY ID
         GameList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         getFiles(GameList); //get files for file selector
-        // selectGameButton = new Button("Change Game");
         selectGameButton.setId("ChangeGame"); // DO NOT MODIFY ID
         AdventureGameView.makeButtonAccessible(selectGameButton, "select game", "This is the button to select a game", "Use this button to indicate a game file you would like to load.");
 
-        // closeWindowButton = new Button("Close Window");
         closeWindowButton.setId("closeWindowButton"); // DO NOT MODIFY ID
         closeWindowButton.setStyle("-fx-background-color: #17871b; -fx-text-fill: white;");
         closeWindowButton.setPrefSize(200, 50);
@@ -139,6 +137,16 @@ public class LoadView {
     }
 
     /**
+     * Updates the observer with new size information.
+     *
+     * @param newSize The new size information received from the subject.
+     */
+    @Override
+    public void updateSize(String newSize) {
+        updateFontSize(newSize);
+    }
+
+    /**
      * Updates the font size of all labels and buttons in the current class.
      * The font size can be set to "Big" (size 24) or the default size "Normal" (size 16).
      *
@@ -163,6 +171,16 @@ public class LoadView {
             currentFontSize = 16;
         }
 
+    }
+
+    /**
+     * Updates the observer with new style information.
+     *
+     * @param newStyle The new style information received from the subject.
+     */
+    @Override
+    public void updateStyle(String newStyle) {
+        updateFontStyle(newStyle);
     }
 
     /**

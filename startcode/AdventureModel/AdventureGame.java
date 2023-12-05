@@ -58,7 +58,7 @@ public class AdventureGame implements Serializable {
 
     /**
      * Save the current state of the game to a file
-     * 
+     *
      * @param file pointer to file to write to
      */
     public void saveModel(File file) {
@@ -213,7 +213,7 @@ public class AdventureGame implements Serializable {
     /**
      * getDirectoryName
      * __________________________
-     * Getter method for directory 
+     * Getter method for directory
      * @return directoryName
      */
     public String getDirectoryName() {
@@ -223,7 +223,7 @@ public class AdventureGame implements Serializable {
     /**
      * getInstructions
      * __________________________
-     * Getter method for instructions 
+     * Getter method for instructions
      * @return helpText
      */
     public String getInstructions() {
@@ -233,7 +233,7 @@ public class AdventureGame implements Serializable {
     /**
      * getPlayer
      * __________________________
-     * Getter method for Player 
+     * Getter method for Player
      */
     public Player getPlayer() {
         return this.player;
@@ -242,7 +242,7 @@ public class AdventureGame implements Serializable {
     /**
      * getRooms
      * __________________________
-     * Getter method for rooms 
+     * Getter method for rooms
      * @return map of key value pairs (integer to room)
      */
     public HashMap<Integer, Room> getRooms() {
@@ -252,7 +252,7 @@ public class AdventureGame implements Serializable {
     /**
      * getSynonyms
      * __________________________
-     * Getter method for synonyms 
+     * Getter method for synonyms
      * @return map of key value pairs (synonym to command)
      */
     public HashMap<String, String> getSynonyms() {
