@@ -7,20 +7,10 @@
     <list default="true" id="b74dfb60-dfe6-4644-b990-9fc05cc7be1c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/libraries/javafx_swt.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/javafx_swt.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AdventureModel/AdventureGame.java" beforeDir="false" afterPath="$PROJECT_DIR$/AdventureModel/AdventureGame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AdventureModel/GameTimer.java" beforeDir="false" afterPath="$PROJECT_DIR$/AdventureModel/GameTimer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AdventureModel/Leaderboard.java" beforeDir="false" afterPath="$PROJECT_DIR$/AdventureModel/Leaderboard.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Games/Saved/2023.11.28.20.10.27.ser" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Games/Saved/2023.11.29.19.58.56.ser" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Games/Saved/2023.11.29.19.59.05.ser" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Games/Saved/asf.ser" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Games/TinyGame/leaderboard.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Games/TinyGame/leaderboard.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/startcode/.idea/libraries/javafx_swt.xml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/startcode/.idea/libraries/javafx_swt.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/startcode/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/startcode/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/startcode/startcode.iml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/startcode/startcode.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/startcode.iml" beforeDir="false" afterPath="$PROJECT_DIR$/startcode.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/views/AdventureGameView.java" beforeDir="false" afterPath="$PROJECT_DIR$/views/AdventureGameView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/views/LoadView.java" beforeDir="false" afterPath="$PROJECT_DIR$/views/LoadView.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,7 +20,6 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -42,18 +31,15 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 2
-}</component>
+    &quot;associatedIndex&quot;: 2
+    }</component>
   <component name="ProjectId" id="2Yp2I62FQalwyoEJngGAs8KpcRM" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="1" id="Add" />
-  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
+    &quot;keyToString&quot;: {
     &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
     &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
     &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
@@ -71,13 +57,13 @@
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
-  }
-}</component>
+    }
+    }</component>
   <component name="RunManager">
-    <configuration name="AdventureGameApp" type="Application" factoryName="Application" nameIsGenerated="true">
+    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="AdventureGameApp" />
       <module name="startcode" />
-      <option name="VM_PARAMETERS" value="--module-path &quot;/Library/Java/JavaVirtualMachines/javafx-sdk-21/lib&quot; --add-modules javafx.controls,javafx.fxml,javafx.media" />
+      <option name="VM_PARAMETERS" value="--module-path &quot;$USER_HOME$/javafx-sdk-21/lib&quot; --add-modules javafx.controls,javafx.fxml,javafx.media" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -98,7 +84,6 @@
       <workItem from="1701221036912" duration="1201000" />
       <workItem from="1701225707292" duration="1405000" />
       <workItem from="1701584338755" duration="175000" />
-      <workItem from="1701584756106" duration="14189000" />
     </task>
     <servers />
   </component>
